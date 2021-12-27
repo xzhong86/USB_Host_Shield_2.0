@@ -172,6 +172,11 @@ e-mail   :  support@circuitsathome.com
 extern SPI_HandleTypeDef SPI_Handle; // Needed to be declared in your main.cpp
 #endif
 
+#ifdef __RP2040__
+#include "rp2040-ard.h"
+#define SPI PicoSPI1
+#endif
+
 // Fix defines on Arduino Due
 #ifdef ARDUINO_SAM_DUE
 #ifdef tokSETUP

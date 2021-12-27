@@ -60,18 +60,18 @@ void SerialPrintHex(T val) {
         } while(--num_nibbles);
 }
 
-template <class T>
-void PrintHex2(Print *prn, T val) {
-        T mask = (((T)1) << (((sizeof (T) << 1) - 1) << 2));
-
-        while(mask > 1) {
-                if(val < mask)
-                        prn->print("0");
-
-                mask >>= 4;
-        }
-        prn->print((T)val, HEX);
-}
+//template <class T>
+//void PrintHex2(Print *prn, T val) {
+//        T mask = (((T)1) << (((sizeof (T) << 1) - 1) << 2));
+//
+//        while(mask > 1) {
+//                if(val < mask)
+//                        prn->print("0");
+//
+//                mask >>= 4;
+//        }
+//        prn->print((T)val, HEX);
+//}
 
 template <class T> void D_PrintHex(T val __attribute__((unused)), int lvl __attribute__((unused))) {
 #ifdef DEBUG_USB_HOST

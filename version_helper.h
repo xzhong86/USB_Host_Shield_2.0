@@ -29,6 +29,8 @@ e-mail   :  support@circuitsathome.com
 
 #if defined(ARDUINO) && ARDUINO >=100
 #include <Arduino.h>
+#elif defined(__RP2040__)
+// include?
 #else
 #include <WProgram.h>
 #include <pins_arduino.h>

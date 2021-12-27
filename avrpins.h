@@ -808,6 +808,36 @@ public:
 
 #endif // Arduino pin definitions
 
+#elif defined(__arm__) && defined(__RP2040__)
+
+#include <hardware/gpio.h>
+
+#define MAKE_PIN(className, pinNum)			\
+    class className {					\
+    public:						\
+    static void Set() { gpio_put(pinNum, 1); }		\
+    static void Clear() { gpio_put(pinNum, 1); }	\
+    static void SetDirRead() {				\
+	gpio_set_dir(pinNum, false);			\
+    }							\
+    static void SetDirWrite() {				\
+	gpio_set_dir(pinNum, true);			\
+    }							\
+    static uint8_t IsSet() { return gpio_get(pinNum); }	\
+    };
+
+MAKE_PIN(P10, 10)  // SCK
+MAKE_PIN(P11, 11)  // MOSI
+MAKE_PIN(P12, 12)  // MISO
+MAKE_PIN(P13, 13)  // CS
+
+#define PIN_SPI_SCK   10
+#define PIN_SPI_MOSI  11
+#define PIN_SPI_MISO  12
+#define PIN_SPI_SS    13
+
+#undef MAKE_PIN
+
 #elif defined(__arm__)
 
 // pointers are 32 bits on ARM

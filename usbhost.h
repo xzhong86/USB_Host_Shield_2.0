@@ -228,6 +228,10 @@ uint8_t* MAX3421e< SPI_SS, INTR >::bytesWr(uint8_t reg, uint8_t nbytes, uint8_t*
         spi4teensy3::send(reg | 0x02);
         spi4teensy3::send(data_p, nbytes);
         data_p += nbytes;
+#elif defined(__RP2040__)
+	SPI.transfer(reg | 0x02);
+	SPI.send(data_p, nbytes);
+        data_p += nbytes;
 #elif defined(STM32F4)
         uint8_t data = reg | 0x02;
         HAL_SPI_Transmit(&SPI_Handle, &data, 1, HAL_MAX_DELAY);
@@ -325,6 +329,10 @@ uint8_t* MAX3421e< SPI_SS, INTR >::bytesRd(uint8_t reg, uint8_t nbytes, uint8_t*
         spi4teensy3::send(reg);
         spi4teensy3::receive(data_p, nbytes);
         data_p += nbytes;
+#elif defined(__RP2040__)
+	SPI.transfer(reg);
+	SPI.receive(data_p, nbytes);
+	data_p += nbytes;
 #elif defined(SPI_HAS_TRANSACTION) && !defined(ESP8266) && !defined(ESP32)
         USB_SPI.transfer(reg);
         memset(data_p, 0, nbytes); // Make sure we send out empty bytes

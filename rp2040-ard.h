@@ -7,7 +7,13 @@ class ArduinoSerial {
 public:
     ArduinoSerial();
     void print(char c);
+    void print(const char *str);
+    void print(int v, const char *fmt);
+    void println(const char *str);
+    void println(int v, const char *fmt);
 };
+#define DEC  "%d"
+#define BYTE "%c"
 
 extern ArduinoSerial Serial;
 
@@ -28,5 +34,6 @@ public:
 extern ArduinoSPI PicoSPI1;
 
 #define delay(ms) busy_wait_us_32(ms * 1000)
+#define millis()  to_ms_since_boot(get_absolute_time())
 
 #endif

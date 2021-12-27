@@ -1,11 +1,26 @@
 
 #include <stdio.h>
+#include "Usb.h"
+#include "rp2040-ard.h"
 
 ArduinoSerial::ArduinoSerial() {
 }
 
 void ArduinoSerial::print(char ch) {
     printf("%c", ch);
+}
+void ArduinoSerial::print(const char *str) {
+    printf(str);
+}
+void ArduinoSerial::print(int v, const char *fmt) {
+    printf(fmt, v);
+}
+void ArduinoSerial::println(const char *str) {
+    printf("%s\n", str);
+}
+void ArduinoSerial::println(int v, const char *fmt) {
+    printf(fmt, v);
+    printf("\n");
 }
 
 ArduinoSerial Serial;

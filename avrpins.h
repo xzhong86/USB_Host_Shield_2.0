@@ -830,11 +830,15 @@ MAKE_PIN(P10, 10)  // SCK
 MAKE_PIN(P11, 11)  // MOSI
 MAKE_PIN(P12, 12)  // MISO
 MAKE_PIN(P13, 13)  // CS
+MAKE_PIN(P14, 14)  // INTR
 
 #define PIN_SPI_SCK   10
 #define PIN_SPI_MOSI  11
 #define PIN_SPI_MISO  12
 #define PIN_SPI_SS    13
+
+#define PinClass_SS   P13
+#define PinClass_Intr P14
 
 #undef MAKE_PIN
 

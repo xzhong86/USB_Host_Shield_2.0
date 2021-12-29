@@ -7,3 +7,4 @@ add_library(usb_host_shield
 
 target_link_libraries(usb_host_shield pico_stdlib hardware_spi)
 
+target_include_directories(usb_host_shield PUBLIC .)

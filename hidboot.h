@@ -475,7 +475,6 @@ uint8_t HIDBoot<BOOT_PROTOCOL>::Init(uint8_t parent, uint8_t port, bool lowspeed
 
         // Get RPIPE and throw it away.
 
-/* Remove LED blinking. This is unnecessary and may cause unclear problem with some keyboard.
         if(BOOT_PROTOCOL & USB_HID_PROTOCOL_KEYBOARD) {
                 // Wake keyboard interface by twinkling up to 5 LEDs that are in the spec.
                 // kana, compose, scroll, caps, num
@@ -487,7 +486,6 @@ uint8_t HIDBoot<BOOT_PROTOCOL>::Init(uint8_t parent, uint8_t port, bool lowspeed
                         delay(25);
                 }
         }
-*/
         USBTRACE("BM configured\r\n");
 
         bPollEnable = true;
@@ -584,13 +582,17 @@ uint8_t HIDBoot<BOOT_PROTOCOL>::Poll() {
 
                 // To-do: optimize manually, using the for loop only if needed.
                 for(int i = 0; i < epMUL(BOOT_PROTOCOL); i++) {
-                        const uint16_t const_buff_len = 16;
-                        uint8_t buf[const_buff_len];
+                        const uint16_t const_buff_len = 64;
 
                         USBTRACE3("(hidboot.h) i=", i, 0x81);
                         USBTRACE3("(hidboot.h) epInfo[epInterruptInIndex + i].epAddr=", epInfo[epInterruptInIndex + i].epAddr, 0x81);
                         USBTRACE3("(hidboot.h) epInfo[epInterruptInIndex + i].maxPktSize=", epInfo[epInterruptInIndex + i].maxPktSize, 0x81);
                         uint16_t read = (uint16_t)epInfo[epInterruptInIndex + i].maxPktSize;
+
+                        if (read > const_buff_len)
+                            read = const_buff_len;
+
+                        uint8_t buf[read];
 
                         rcode = pUsb->inTransfer(bAddress, epInfo[epInterruptInIndex + i].epAddr, &read, buf);
                         // SOME buggy dongles report extra keys (like sleep) using a 2 byte packet on the wrong endpoint.

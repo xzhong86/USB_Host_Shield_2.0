@@ -217,7 +217,7 @@ uint8_t USBHub::Release() {
         pUsb->GetAddressPool().FreeAddress(bAddress);
 
         if(bAddress == 0x41)
-                pUsb->ResetHubPreMask();
+                pUsb->SetHubPreMask();
 
         bAddress = 0;
         bNbrPorts = 0;

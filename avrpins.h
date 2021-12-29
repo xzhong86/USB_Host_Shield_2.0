@@ -816,7 +816,7 @@ public:
     class className {					\
     public:						\
     static void Set() { gpio_put(pinNum, 1); }		\
-    static void Clear() { gpio_put(pinNum, 1); }	\
+    static void Clear() { gpio_put(pinNum, 0); }	\
     static void SetDirRead() {				\
 	gpio_set_dir(pinNum, false);			\
     }							\

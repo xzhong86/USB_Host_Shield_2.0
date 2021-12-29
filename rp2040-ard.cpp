@@ -29,7 +29,7 @@ ArduinoSerial Serial;
 #include <hardware/gpio.h>
 
 void ArduinoSPI::begin() {
-    spi_init(spi, 20000000); // 20MHz
+    spi_init(spi, 20 * 1000 * 1000); // 20MHz
     gpio_set_function(PIN_SPI_SCK,  GPIO_FUNC_SPI);
     gpio_set_function(PIN_SPI_MOSI, GPIO_FUNC_SPI);
     gpio_set_function(PIN_SPI_MISO, GPIO_FUNC_SPI);

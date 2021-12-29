@@ -2,7 +2,9 @@
 
 This repo is copied from https://github.com/tmk/USB_Host_Shield_2.0 then sync with [GitHub:USB Host Shield 2.0](https://github.com/felis/USB_Host_Shield_2.0)
 
-Added support for Raspberry Pi Pico.
+The [official repo](https://github.com/felis/USB_Host_Shield_2.0) is too large to clone in fucking china, so I didn't fork the repo, just copy the major source code.
+
+Added support for Raspberry Pi Pico RP2040.
 
 ----------
 

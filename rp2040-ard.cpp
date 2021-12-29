@@ -49,4 +49,5 @@ void ArduinoSPI::receive(uint8_t *data, uint8_t size) {
     spi_read_blocking(spi, 0, data, size);
 }
 
+ArduinoSPI PicoSPI0(spi0);
 ArduinoSPI PicoSPI1(spi1);

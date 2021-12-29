@@ -826,19 +826,31 @@ public:
     static uint8_t IsSet() { return gpio_get(pinNum); }	\
     };
 
-MAKE_PIN(P10, 10)  // SCK
-MAKE_PIN(P11, 11)  // MOSI
-MAKE_PIN(P12, 12)  // MISO
-MAKE_PIN(P13, 13)  // CS
-MAKE_PIN(P14, 14)  // INTR
+MAKE_PIN(P0, 0)
+MAKE_PIN(P1, 1)
+MAKE_PIN(P2, 2)
+MAKE_PIN(P3, 3)
+MAKE_PIN(P4, 4)
+MAKE_PIN(P5, 5)
+MAKE_PIN(P6, 6)
+MAKE_PIN(P7, 7)
+MAKE_PIN(P8, 8)
+MAKE_PIN(P9, 9)
+MAKE_PIN(P10, 10)
+MAKE_PIN(P11, 11)
+MAKE_PIN(P12, 12)
+MAKE_PIN(P13, 13)
+MAKE_PIN(P14, 14)
+MAKE_PIN(P15, 15)
+MAKE_PIN(P16, 16)
+MAKE_PIN(P17, 17)
+MAKE_PIN(P18, 18)
+MAKE_PIN(P19, 19)
+MAKE_PIN(P20, 20)
+MAKE_PIN(P21, 21)
+MAKE_PIN(P22, 22)
 
-#define PIN_SPI_SCK   10
-#define PIN_SPI_MOSI  11
-#define PIN_SPI_MISO  12
-#define PIN_SPI_SS    13
-
-#define PinClass_SS   P13
-#define PinClass_Intr P14
+#include "rp2040-pins.h"
 
 #undef MAKE_PIN
 

@@ -18,7 +18,7 @@ public:
 extern ArduinoSerial Serial;
 
 #include "hardware/spi.h"
-//#include <hardware/spi.h>
+
 class ArduinoSPI {
     spi_inst_t *spi;
 public:
@@ -30,7 +30,7 @@ public:
     void receive(uint8_t *data, uint8_t size);
 };
 
-//extern ArduinoSPI PicoSPI0;
+extern ArduinoSPI PicoSPI0;
 extern ArduinoSPI PicoSPI1;
 
 #define delay(ms) busy_wait_us_32(ms * 1000)

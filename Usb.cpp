@@ -158,7 +158,6 @@ uint8_t USB::ctrlReq(uint8_t addr, uint8_t ep, uint8_t bmReqType, uint8_t bReque
         {
                 if(direction) //IN transfer
                 {
-                        USBTRACE("Ci ");
                         uint16_t left = total;
 
                         pep->bmRcvToggle = 1; //bmRCVTOG1;
@@ -173,7 +172,8 @@ uint8_t USB::ctrlReq(uint8_t addr, uint8_t ep, uint8_t bmReqType, uint8_t bReque
 
                                 rcode = InTransfer(pep, nak_limit, &read, dataptr);
                                 if(rcode == hrTOGERR) {
-                                        USBTRACE("T1 ");
+                                        // yes, we flip it wrong here so that next time it is actually correct!
+                                        pep->bmRcvToggle = (regRd(rHRSL) & bmSNDTOGRD) ? 0 : 1;
                                         continue;
                                 }
 
@@ -191,7 +191,6 @@ uint8_t USB::ctrlReq(uint8_t addr, uint8_t ep, uint8_t bmReqType, uint8_t bReque
                         }
                 } else //OUT transfer
                 {
-                        USBTRACE("Co ");
                         pep->bmSndToggle = 1; //bmSNDTOG1;
                         rcode = OutTransfer(pep, nak_limit, nbytes, dataptr);
                 }
@@ -240,7 +239,9 @@ uint8_t USB::InTransfer(EpInfo *pep, uint16_t nak_limit, uint16_t *nbytesptr, ui
 #endif
                 rcode = dispatchPkt(tokIN, pep->epAddr, nak_limit); //IN packet to EP-'endpoint'. Function takes care of NAKS.
                 if(rcode == hrTOGERR) {
-                        USBTRACE("T2 ");
+                        // yes, we flip it wrong here so that next time it is actually correct!
+                        pep->bmRcvToggle = (regRd(rHRSL) & bmRCVTOGRD) ? 0 : 1;
+                        regWr(rHCTL, (pep->bmRcvToggle) ? bmRCVTOG1 : bmRCVTOG0); //set toggle value
                         continue;
                 }
                 if(rcode) {
@@ -362,7 +363,9 @@ uint8_t USB::OutTransfer(EpInfo *pep, uint16_t nak_limit, uint16_t nbytes, uint8
                                         //return ( rcode);
                                         break;
                                 case hrTOGERR:
-                                        USBTRACE("T3 ");
+                                        // yes, we flip it wrong here so that next time it is actually correct!
+                                        pep->bmSndToggle = (regRd(rHRSL) & bmSNDTOGRD) ? 0 : 1;
+                                        regWr(rHCTL, (pep->bmSndToggle) ? bmSNDTOG1 : bmSNDTOG0); //set toggle value
                                         break;
                                 default:
                                         goto breakout;
@@ -385,6 +388,11 @@ uint8_t USB::OutTransfer(EpInfo *pep, uint16_t nak_limit, uint16_t nbytes, uint8
                 data_p += bytes_tosend;
         }//while( bytes_left...
 breakout:
+        /* If rcode(=rHRSL) is non-zero, untransmitted data remains in the SNDFIFO. */
+        if(rcode != 0) {
+            //Switch the FIFO containing the OUT data back under microcontroller control and reset pointer.
+            regWr(rSNDBC, 0);
+        }
 
         pep->bmSndToggle = (regRd(rHRSL) & bmSNDTOGRD) ? 1 : 0; //bmSNDTOG1 : bmSNDTOG0;  //update toggle
         return ( rcode); //should be 0 in all cases
@@ -480,9 +488,6 @@ void USB::Task(void) //USB state machine
                         if((usb_task_state & USB_STATE_MASK) == USB_STATE_DETACHED) {
                                 delay = (uint32_t)millis() + USB_SETTLE_DELAY;
                                 usb_task_state = USB_ATTACHED_SUBSTATE_SETTLE;
-
-                                // disable bus status change interrupt until settled
-                                regWr(rHIEN, (regRd(rHIEN) & ~bmCONDETIE));
                         }
                         break;
         }// switch( tmpdata
@@ -510,15 +515,11 @@ void USB::Task(void) //USB state machine
                                 usb_task_state = USB_ATTACHED_SUBSTATE_RESET_DEVICE;
                         else break; // don't fall through
                 case USB_ATTACHED_SUBSTATE_RESET_DEVICE:
-                        // re-enable bus status change interrupt
-                        regWr(rHIEN, (regRd(rHIEN) | bmCONDETIE));
-
                         regWr(rHCTL, bmBUSRST); //issue bus reset
                         usb_task_state = USB_ATTACHED_SUBSTATE_WAIT_RESET_COMPLETE;
                         break;
                 case USB_ATTACHED_SUBSTATE_WAIT_RESET_COMPLETE:
                         if((regRd(rHCTL) & bmBUSRST) == 0) {
-                                regWr(rHIRQ, bmFRAMEIRQ);
                                 tmpdata = regRd(rMODE) | bmSOFKAENAB; //start SOF generation
                                 regWr(rMODE, tmpdata);
                                 usb_task_state = USB_ATTACHED_SUBSTATE_WAIT_SOF;

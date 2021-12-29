@@ -228,8 +228,8 @@ e-mail   :  support@circuitsathome.com
 #define hrTIMEOUT   0x0E
 #define hrBABBLE    0x0F
 
-#define MODE_FS_HOST    (bmDPPULLDN|bmDMPULLDN|bmHOST)
-#define MODE_LS_HOST    (bmDPPULLDN|bmDMPULLDN|bmHOST|bmLOWSPEED)
+#define MODE_FS_HOST    (bmDPPULLDN|bmDMPULLDN|bmHOST|bmSOFKAENAB)
+#define MODE_LS_HOST    (bmDPPULLDN|bmDMPULLDN|bmHOST|bmLOWSPEED|bmSOFKAENAB)
 
 
 #endif //_max3421e_h_

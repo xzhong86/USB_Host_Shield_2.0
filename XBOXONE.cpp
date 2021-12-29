@@ -331,9 +331,9 @@ void XBOXONE::readReport() {
         if(readBuf[0] == 0x07) {
                 // The XBOX button has a separate message
                 if(readBuf[4] == 1)
-                        ButtonState |= pgm_read_word(&XBOX_BUTTONS[XBOX]);
+                        ButtonState |= pgm_read_word(&XBOX_BUTTONS[ButtonIndex(XBOX)]);
                 else
-                        ButtonState &= ~pgm_read_word(&XBOX_BUTTONS[XBOX]);
+                        ButtonState &= ~pgm_read_word(&XBOX_BUTTONS[ButtonIndex(XBOX)]);
 
                 if(ButtonState != OldButtonState) {
                     ButtonClickState = ButtonState & ~OldButtonState; // Update click state variable
@@ -348,7 +348,7 @@ void XBOXONE::readReport() {
                 return;
         }
 
-        uint16_t xbox = ButtonState & pgm_read_word(&XBOX_BUTTONS[XBOX]); // Since the XBOX button is separate, save it and add it back in
+        uint16_t xbox = ButtonState & pgm_read_word(&XBOX_BUTTONS[ButtonIndex(XBOX)]); // Since the XBOX button is separate, save it and add it back in
         // xbox button from before, dpad, abxy, start/back, sync, stick click, shoulder buttons
         ButtonState = xbox | (((uint16_t)readBuf[5] & 0xF) << 8) | (readBuf[4] & 0xF0)  | (((uint16_t)readBuf[4] & 0x0C) << 10) | ((readBuf[4] & 0x01) << 3) | (((uint16_t)readBuf[5] & 0xC0) << 8) | ((readBuf[5] & 0x30) >> 4);
 
@@ -359,6 +359,11 @@ void XBOXONE::readReport() {
         hatValue[LeftHatY] = (int16_t)(((uint16_t)readBuf[13] << 8) | readBuf[12]);
         hatValue[RightHatX] = (int16_t)(((uint16_t)readBuf[15] << 8) | readBuf[14]);
         hatValue[RightHatY] = (int16_t)(((uint16_t)readBuf[17] << 8) | readBuf[16]);
+
+        // Read and store share button separately
+        const bool newShare = (readBuf[22] & 0x01) ? 1 : 0;
+        shareClicked = ((sharePressed != newShare) && newShare) ? 1 : 0;
+        sharePressed = newShare;
 
         //Notify(PSTR("\r\nButtonState"), 0x80);
         //PrintHex<uint16_t>(ButtonState, 0x80);
@@ -378,28 +383,44 @@ void XBOXONE::readReport() {
 }
 
 uint16_t XBOXONE::getButtonPress(ButtonEnum b) {
-        if(b == L2) // These are analog buttons
+        // special handling for 'SHARE' button due to index collision with 'BACK',
+        // since the 'SHARE' value originally came from the PS4 controller and
+        // the 'SHARE' button was added to Xbox later with the Series S/X controllers
+        if (b == SHARE) return sharePressed;
+
+        const int8_t index = getButtonIndexXbox(b); if (index < 0) return 0;
+        if(index == ButtonIndex(L2)) // These are analog buttons
                 return triggerValue[0];
-        else if(b == R2)
+        else if(index == ButtonIndex(R2))
                 return triggerValue[1];
-        return (bool)(ButtonState & ((uint16_t)pgm_read_word(&XBOX_BUTTONS[(uint8_t)b])));
+        return (bool)(ButtonState & ((uint16_t)pgm_read_word(&XBOX_BUTTONS[index])));
 }
 
 bool XBOXONE::getButtonClick(ButtonEnum b) {
-        if(b == L2) {
+        // special handling for 'SHARE' button, ibid the above
+        if (b == SHARE) {
+                if (shareClicked) {
+                        shareClicked = false;
+                        return true;
+                }
+                return false;
+        }
+
+        const int8_t index = getButtonIndexXbox(b); if (index < 0) return 0;
+        if(index == ButtonIndex(L2)) {
                 if(L2Clicked) {
                         L2Clicked = false;
                         return true;
                 }
                 return false;
-        } else if(b == R2) {
+        } else if(index == ButtonIndex(R2)) {
                 if(R2Clicked) {
                         R2Clicked = false;
                         return true;
                 }
                 return false;
         }
-        uint16_t button = pgm_read_word(&XBOX_BUTTONS[(uint8_t)b]);
+        uint16_t button = pgm_read_word(&XBOX_BUTTONS[index]);
         bool click = (ButtonClickState & button);
         ButtonClickState &= ~button; // Clear "click" event
         return click;
@@ -414,8 +435,10 @@ uint8_t XBOXONE::XboxCommand(uint8_t* data, uint16_t nbytes) {
         data[2] = cmdCounter++; // Increment the output command counter
         uint8_t rcode = pUsb->outTransfer(bAddress, epInfo[ XBOX_ONE_OUTPUT_PIPE ].epAddr, nbytes, data);
 #ifdef DEBUG_USB_HOST
-        Notify(PSTR("\r\nXboxCommand, Return: "), 0x80);
-        D_PrintHex<uint8_t > (rcode, 0x80);
+        if(rcode) {
+                Notify(PSTR("\r\nXboxCommand failed. Return: "), 0x80);
+                D_PrintHex<uint8_t > (rcode, 0x80);
+        }
 #endif
         return rcode;
 }

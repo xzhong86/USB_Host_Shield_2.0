@@ -70,7 +70,7 @@ public:
                 #else
                     USB_SPI.setClockDivider(SPI_CLOCK_DIV2); // This will set the SPI frequency to 8MHz - it could be higher, but it is not supported in the old API
                 #endif
-#elif !defined(RBL_NRF51822)
+#elif !defined(RBL_NRF51822) && !defined(NRF52_SERIES)
                 USB_SPI.setClockDivider(4); // Set speed to 84MHz/4=21MHz - the MAX3421E can handle up to 26MHz
 #endif
         }
@@ -120,6 +120,8 @@ typedef SPi< P16, P18, P17, P10 > spi;
 typedef SPi< P14, P13, P12, P15 > spi;
 #elif defined(ESP32)
 typedef SPi< P18, P23, P19, P5 > spi;
+#elif defined(ARDUINO_NRF52840_FEATHER)
+typedef SPi< P26, P25, P24, P5 > spi;
 #else
 #error "No SPI entry in usbhost.h"
 #endif
@@ -440,7 +442,7 @@ int8_t MAX3421e< SPI_SS, INTR >::Init() {
 
         regWr(rMODE, bmDPPULLDN | bmDMPULLDN | bmHOST); // set pull-downs, Host
 
-        regWr(rHIEN, bmCONDETIE); //connection detection
+        regWr(rHIEN, bmCONDETIE | bmFRAMEIE); //connection detection
 
         /* check if device is connected */
         regWr(rHCTL, bmSAMPLEBUS); // sample USB bus
@@ -481,7 +483,7 @@ int8_t MAX3421e< SPI_SS, INTR >::Init(int mseconds) {
 
         regWr(rMODE, bmDPPULLDN | bmDMPULLDN | bmHOST); // set pull-downs, Host
 
-        regWr(rHIEN, bmCONDETIE); //connection detection
+        regWr(rHIEN, bmCONDETIE | bmFRAMEIE); //connection detection
 
         /* check if device is connected */
         regWr(rHCTL, bmSAMPLEBUS); // sample USB bus
@@ -507,22 +509,18 @@ void MAX3421e< SPI_SS, INTR >::busprobe() {
         switch(bus_sample) { //start full-speed or low-speed host
                 case( bmJSTATUS):
                         if((regRd(rMODE) & bmLOWSPEED) == 0) {
-                                if (vbusState == FSHOST) return;
                                 regWr(rMODE, MODE_FS_HOST); //start full-speed host
                                 vbusState = FSHOST;
                         } else {
-                                if (vbusState == LSHOST) return;
                                 regWr(rMODE, MODE_LS_HOST); //start low-speed host
                                 vbusState = LSHOST;
                         }
                         break;
                 case( bmKSTATUS):
                         if((regRd(rMODE) & bmLOWSPEED) == 0) {
-                                if (vbusState == LSHOST) return;
                                 regWr(rMODE, MODE_LS_HOST); //start low-speed host
                                 vbusState = LSHOST;
                         } else {
-                                if (vbusState == FSHOST) return;
                                 regWr(rMODE, MODE_FS_HOST); //start full-speed host
                                 vbusState = FSHOST;
                         }
